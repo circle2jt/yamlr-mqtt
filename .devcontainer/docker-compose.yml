@@ -1,0 +1,26 @@
+version: '3'
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - 9001:9001
+      - 1883:1883
+    volumes:
+      - ./mqtt-config:/mosquitto/config
+  app:
+    build:
+      context: .
+      args:
+        VARIANT: 18-bullseye
+    environment:
+      - MQTT_URI=mqtt://mqtt:1883
+    user: node
+    volumes:
+      - ../:/workspaces/app
+      - pnpm_cached:/workspaces/app/.pnpm-store
+    command: /bin/sh -c "while sleep infinity; do :; done"
+    links:
+      - mqtt
+volumes:
+  pnpm_cached:
+    external: true
