@@ -2,10 +2,18 @@
 
 ## History
 
+- [0.0.1.md](#1676282678538)  -  _2/13/2023, 5:04:38 PM_
 - [0.0.1-alpha.2.md](#1676282381797)  -  _2/13/2023, 4:59:41 PM_
 
 ## Details
 
+<a id="1676282678538"></a>
+### 0.0.1
+
+* chore: prerelease 0.0.1-alpha.2 (387fdf1)
+* ci: update automation for up version, test and publish (4b64e55)
+* Initial commit (0289be0)
+  
 <a id="1676282381797"></a>
 ### 0.0.1-alpha.2
 
