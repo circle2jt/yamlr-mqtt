@@ -6,7 +6,11 @@ name: test
 on:
   push:
     branches:
-      - main
+      - '**'
+    paths:
+      - src/**
+      - package.json
+      - tsconfig.*
 jobs:
   test:
     name: Testing
@@ -41,12 +45,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm install --frozen-lockfile --prefer-offline --silent --reporter silent
+      - run: pnpm ci:test
         env:
           MQTT_URI: mqtt://localhost:1883
 
       - name: Create a new tag
-        uses: Klemensas/action-autotag@stable
-        with:
-          GITHUB_TOKEN: "${{ secrets.GIT_TOKEN }}"
+        run: pnpm ci:tag
+        env:
+          GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
+          LASTCOMMITSHA: ${{ github.SHA }}
