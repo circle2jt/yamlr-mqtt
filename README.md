@@ -22,20 +22,20 @@ Declare a mqtt connector
 Example:  
 
 ```yaml
-  - ymlr-mqtt:
-      title: "[mqtt] localhost"
+  - name: "[mqtt] localhost"
+    ymlr-mqtt:
       uri: mqtt://user:pass@mqtt            # Mqtt uri
       runs:                                 # When a message is received then it will runs them
         - echo: Mqtt is connected
 ```
 Publish a message to topics
 ```yaml
-  - ymlr-mqtt:
-      title: "[mqtt] localhost"
+  - name: "[mqtt] localhost"
+    ymlr-mqtt:
       uri: mqtt://user:pass@mqtt            # Mqtt uri
       runs:                                 # When a message is received then it will runs them
-        - ymlr-mqtt'pub:
-            title: Publish a message
+        - name: Publish a message
+          ymlr-mqtt'pub:
             topics:
               - test
             data:
@@ -51,8 +51,8 @@ Example:
 
 Publish a message to mqtt
 ```yaml
-  - ymlr-mqtt'pub:
-      title: "[mqtt] localhost"
+  - name: "[mqtt] localhost"
+    ymlr-mqtt'pub:
       uri: mqtt://user:pass@mqtt
       topic: topic1
       topics:
@@ -66,8 +66,8 @@ Publish a message to mqtt
 
 Reuse mqtt connection to publish multiple times
 ```yaml
-  - ymlr-mqtt:
-      title: "[mqtt] localhost"
+  - name: "[mqtt] localhost"
+    ymlr-mqtt:
       uri: mqtt://user:pass@mqtt
       runs:
         - ymlr-mqtt'pub:
@@ -105,8 +105,8 @@ Subscribe topics in mqtt
 Example:  
 
 ```yaml
-  - ymlr-mqtt'sub:
-      title: "[mqtt] localhost"
+  - name: "[mqtt] localhost"
+    ymlr-mqtt'sub:
       uri: mqtt://user:pass@mqtt
       topic: topic1
       topics:                               # topics which is subscribed
@@ -123,12 +123,12 @@ Example:
 ```
 Used in global mqtt
 ```yaml
-  - ymlr-mqtt:
-      title: Global MQTT
+  - name: Global MQTT
+    ymlr-mqtt:
       uri: mqtt://user:pass@mqtt
       runs:
-        - ymlr-mqtt'sub:
-            title: "[mqtt] localhost"
+        - name: "[mqtt] localhost"
+          ymlr-mqtt'sub:
             topic: topic1
             topics:                               # topics which is subscribed
               - topic1

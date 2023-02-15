@@ -5,7 +5,7 @@ vars:
 runs:
   - scene:
       title: Create a new release
-      path: https://raw.githubusercontent.com/circle2jt/ymlr/main/shares/github.release.yaml
+      path: https://raw.githubusercontent.com/circle2jt/ymlr/main.v1/shares/github.release.yaml
       vars:
         token: ${vars.githubToken}
         lastCommitSHA: ${vars.lastCommitSHA}

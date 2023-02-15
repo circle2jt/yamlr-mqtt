@@ -4,13 +4,13 @@ vars:
   versionName: prerelease
 runs:
   - scene:
-      path: https://raw.githubusercontent.com/circle2jt/ymlr/main/shares/version.yaml
+      path: https://raw.githubusercontent.com/circle2jt/ymlr/main.v1/shares/version.yaml
       vars:
         force: true
         preid: ${vars.preid}
         versionName: ${vars.versionName}
         changeDir: ~~/changelogs
         changeFile: ~~/CHANGELOG.md
-        commitFiles: 
+        commitFiles:
           - ~~/README.md
           - ~~/package.json

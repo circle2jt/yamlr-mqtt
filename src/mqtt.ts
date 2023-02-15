@@ -1,27 +1,27 @@
 import assert from 'assert'
+import { connect, IClientOptions, IClientPublishOptions, IClientSubscribeOptions, IPublishPacket, MqttClient, OnMessageCallback } from 'mqtt'
 import { Group } from 'ymlr/src/components/group/group'
 import { GroupItemProps } from 'ymlr/src/components/group/group.props'
-import { connect, IClientOptions, IClientPublishOptions, IClientSubscribeOptions, IPublishPacket, MqttClient, OnMessageCallback } from 'mqtt'
 import { MqttProps } from './mqtt.props'
 
 /** |**  ymlr-mqtt
   Declare a mqtt connector
   @example
   ```yaml
-    - ymlr-mqtt:
-        title: "[mqtt] localhost"
+    - name: "[mqtt] localhost"
+      ymlr-mqtt:
         uri: mqtt://user:pass@mqtt            # Mqtt uri
         runs:                                 # When a message is received then it will runs them
           - echo: Mqtt is connected
   ```
   Publish a message to topics
   ```yaml
-    - ymlr-mqtt:
-        title: "[mqtt] localhost"
+    - name: "[mqtt] localhost"
+      ymlr-mqtt:
         uri: mqtt://user:pass@mqtt            # Mqtt uri
         runs:                                 # When a message is received then it will runs them
-          - ymlr-mqtt'pub:
-              title: Publish a message
+          - name: Publish a message
+            ymlr-mqtt'pub:
               topics:
                 - test
               data:

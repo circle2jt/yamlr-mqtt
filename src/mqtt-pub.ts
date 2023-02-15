@@ -1,6 +1,6 @@
 import assert from 'assert'
-import { ElementShadow } from 'ymlr/src/components/element-shadow'
 import { IClientOptions, IClientPublishOptions } from 'mqtt'
+import { ElementShadow } from 'ymlr/src/components/element-shadow'
 import { Mqtt } from './mqtt'
 import { MqttPubProps } from './mqtt-pub.props'
 
@@ -9,8 +9,8 @@ import { MqttPubProps } from './mqtt-pub.props'
   @example
   Publish a message to mqtt
   ```yaml
-    - ymlr-mqtt'pub:
-        title: "[mqtt] localhost"
+    - name: "[mqtt] localhost"
+      ymlr-mqtt'pub:
         uri: mqtt://user:pass@mqtt
         topic: topic1
         topics:
@@ -24,8 +24,8 @@ import { MqttPubProps } from './mqtt-pub.props'
 
   Reuse mqtt connection to publish multiple times
   ```yaml
-    - ymlr-mqtt:
-        title: "[mqtt] localhost"
+    - name: "[mqtt] localhost"
+      ymlr-mqtt:
         uri: mqtt://user:pass@mqtt
         runs:
           - ymlr-mqtt'pub:

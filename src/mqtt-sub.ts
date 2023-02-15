@@ -1,6 +1,6 @@
 import assert from 'assert'
-import { Job } from 'ymlr/src/components/.job/job'
 import { IClientOptions, IClientSubscribeOptions } from 'mqtt'
+import { Job } from 'ymlr/src/components/.job/job'
 import { Mqtt } from './mqtt'
 import { MqttSubProps } from './mqtt-sub.props'
 
@@ -8,8 +8,8 @@ import { MqttSubProps } from './mqtt-sub.props'
   Subscribe topics in mqtt
   @example
   ```yaml
-    - ymlr-mqtt'sub:
-        title: "[mqtt] localhost"
+    - name: "[mqtt] localhost"
+      ymlr-mqtt'sub:
         uri: mqtt://user:pass@mqtt
         topic: topic1
         topics:                               # topics which is subscribed
@@ -26,12 +26,12 @@ import { MqttSubProps } from './mqtt-sub.props'
   ```
   Used in global mqtt
   ```yaml
-    - ymlr-mqtt:
-        title: Global MQTT
+    - name: Global MQTT
+      ymlr-mqtt:
         uri: mqtt://user:pass@mqtt
         runs:
-          - ymlr-mqtt'sub:
-              title: "[mqtt] localhost"
+          - name: "[mqtt] localhost"
+            ymlr-mqtt'sub:
               topic: topic1
               topics:                               # topics which is subscribed
                 - topic1
