@@ -1,9 +1,10 @@
 - tag'register:
-      ymlr-mqtt: ../src/index
-- ymlr-mqtt'sub:
-      uri: mqtt://mqtt:1883
-      title: Subcribe a topic
-      topics: test
-      runs:
-          - echo: ${this.parentState.topicName}
-          - echo: ${this.parentState.topicMsg}
+    ymlr-mqtt: ../src/index
+
+- name: Subcribe a topic
+  ymlr-mqtt'sub:
+    uri: mqtt://mqtt:1883
+    topics: test
+    runs:
+      - echo: ${this.parentState.topicName}
+      - echo: ${this.parentState.topicMsg}

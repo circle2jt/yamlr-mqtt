@@ -1,7 +1,8 @@
 - tag'register:
     ymlr-mqtt: ../src/index
-- ymlr-mqtt'pub:
+
+- name: Publish a message
+  ymlr-mqtt'pub:
     uri: mqtt://mqtt:1883
-    title: Publish a message
     topics: test
     data: Hello world
