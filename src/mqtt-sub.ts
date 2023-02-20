@@ -16,10 +16,10 @@ import { MqttSubProps } from './mqtt-sub.props'
           - topic1
           - topic2
         runs:                                 # When a message is received then it will runs them
-          - ${this.parentState}               # - Received data in a topic
-          - ${this.parentState.topicName}     # - Topic name
-          - ${this.parentState.topicData}     # - Received message which is cast to object
-          - ${this.parentState.topicMsg}      # - Received message which is text
+          - ${ $parentState }                 # - Received data in a topic
+          - ${ $parentState.topicName }       # - Topic name
+          - ${ $parentState.topicData }       # - Received message which is cast to object
+          - ${ $parentState.topicMsg }        # - Received message which is text
 
           - ...
           # Other elements
@@ -33,14 +33,14 @@ import { MqttSubProps } from './mqtt-sub.props'
           - name: "[mqtt] localhost"
             ymlr-mqtt'sub:
               topic: topic1
-              topics:                               # topics which is subscribed
+              topics:                             # topics which is subscribed
                 - topic1
                 - topic2
-              runs:                                 # When a message is received then it will runs them
-                - ${this.parentState}               # - Received data in a topic
-                - ${this.parentState.topicName}     # - Topic name
-                - ${this.parentState.topicData}     # - Received message which is cast to object
-                - ${this.parentState.topicMsg}      # - Received message which is text
+              runs:                               # When a message is received then it will runs them
+                - ${ $parentState }               # - Received data in a topic
+                - ${ $parentState.topicName }     # - Topic name
+                - ${ $parentState.topicData }     # - Received message which is cast to object
+                - ${ $parentState.topicMsg }      # - Received message which is text
 
                 - ...
                 # Other elements
@@ -58,7 +58,7 @@ export class MqttSub extends Job {
     super(props as any)
     topic && topics.push(topic)
     Object.assign(this, { uri, opts, subOpts, topics })
-    this.$$ignoreEvalProps.push('mqtt')
+    this.ignoreEvalProps.push('mqtt')
   }
 
   tryToParseData(msg: string) {
@@ -74,12 +74,14 @@ export class MqttSub extends Job {
     assert(this.topics.length > 0)
 
     if (this.uri) {
-      this.mqtt = await this.scene.newElement(Mqtt, {
+      const mqttProxy = await this.scene.newElementProxy(Mqtt, {
         uri: this.uri,
         opts: this.opts
-      }) as Mqtt
+      })
+      this.mqtt = mqttProxy?.element as Mqtt
     } else {
-      this.mqtt = await this.getParentByClassName<Mqtt>(Mqtt)?.newOne()
+      const mqttProxy = await this.proxy.getParentByClassName<Mqtt>(Mqtt)?.element?.newOne()
+      this.mqtt = mqttProxy?.element as Mqtt
     }
     assert(this.mqtt)
 

@@ -1,5 +1,5 @@
-import { Testing } from 'ymlr/src/testing'
 import { join } from 'path'
+import { Testing } from 'ymlr/src/testing'
 import { Mqtt } from './mqtt'
 import { MqttSub } from './mqtt-sub'
 
@@ -13,15 +13,15 @@ test('Subscribe a topic in mqtt\'sub', async () => {
   const data = {
     say: 'hello world'
   }
-  const mqttSub = await Testing.newElement(MqttSub, {
+  const mqttSub = await Testing.createElementProxy(MqttSub, {
     uri: process.env.MQTT_URI || '',
     topic: topicName,
     runs: [
       {
         vars: {
-          topic: '${this.parentState.topicName}',
-          data: '${this.parentState.topicData}',
-          msg: '${this.parentState.topicMsg}'
+          topic: '${ $parentState.topicName }',
+          data: '${ $parentState.topicData }',
+          msg: '${ $parentState.topicMsg }'
         }
       },
       {
@@ -29,8 +29,8 @@ test('Subscribe a topic in mqtt\'sub', async () => {
       }
     ]
   })
-  const mqttPub = await Testing.newElement<Mqtt>(Mqtt, { uri: process.env.MQTT_URI || '' })
-  setTimeout(() => mqttPub.client.publish(topicName, JSON.stringify(data)), 1000)
+  const mqttPub = await Testing.createElementProxy<Mqtt>(Mqtt, { uri: process.env.MQTT_URI || '' })
+  setTimeout(() => mqttPub.element.client.publish(topicName, JSON.stringify(data)), 1000)
 
   await mqttSub.exec()
   expect(Testing.vars.topic).toBe(topicName)

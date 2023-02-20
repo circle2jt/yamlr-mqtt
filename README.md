@@ -113,10 +113,10 @@ Example:
         - topic1
         - topic2
       runs:                                 # When a message is received then it will runs them
-        - ${this.parentState}               # - Received data in a topic
-        - ${this.parentState.topicName}     # - Topic name
-        - ${this.parentState.topicData}     # - Received message which is cast to object
-        - ${this.parentState.topicMsg}      # - Received message which is text
+        - ${ $parentState }                 # - Received data in a topic
+        - ${ $parentState.topicName }       # - Topic name
+        - ${ $parentState.topicData }       # - Received message which is cast to object
+        - ${ $parentState.topicMsg }        # - Received message which is text
 
         - ...
         # Other elements
@@ -130,14 +130,14 @@ Used in global mqtt
         - name: "[mqtt] localhost"
           ymlr-mqtt'sub:
             topic: topic1
-            topics:                               # topics which is subscribed
+            topics:                             # topics which is subscribed
               - topic1
               - topic2
-            runs:                                 # When a message is received then it will runs them
-              - ${this.parentState}               # - Received data in a topic
-              - ${this.parentState.topicName}     # - Topic name
-              - ${this.parentState.topicData}     # - Received message which is cast to object
-              - ${this.parentState.topicMsg}      # - Received message which is text
+            runs:                               # When a message is received then it will runs them
+              - ${ $parentState }               # - Received data in a topic
+              - ${ $parentState.topicName }     # - Topic name
+              - ${ $parentState.topicData }     # - Received message which is cast to object
+              - ${ $parentState.topicMsg }      # - Received message which is text
 
               - ...
               # Other elements
