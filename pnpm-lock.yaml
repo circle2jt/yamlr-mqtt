@@ -17,7 +17,7 @@ specifiers:
   ts-node: ^10.9.1
   tsconfig-paths: ^4.1.0
   typescript: ^4.8.4
-  ymlr: ^1.1.0-alpha
+  ymlr: ^1.1.0
 
 dependencies:
   mqtt: 4.3.7
@@ -38,7 +38,7 @@ devDependencies:
   ts-node: 10.9.1_4bewfcp2iebiwuold25d6rgcsy
   tsconfig-paths: 4.1.2
   typescript: 4.9.5
-  ymlr: 1.1.0-alpha.0
+  ymlr: 1.1.0
 
 packages:
 
@@ -3987,8 +3987,8 @@ packages:
       yargs-parser: 21.1.1
     dev: true
 
-  /ymlr/1.1.0-alpha.0:
-    resolution: {integrity: sha512-nUMjdBH/nuWAZMBztiEgiom9D9pMRq5SH/cPsNH1TlSA/V8hmAfz8z5PaVOpzqdEtBzDXB423k4DgHCN4amEHg==}
+  /ymlr/1.1.0:
+    resolution: {integrity: sha512-0EWXz9klmXY85BjiY7/5VGV1MkMalB1+hME/7MzOEFC24omUywBsAygCn/FdCUEuKK81VVQdsWzsYKgRtv2Vxw==}
     hasBin: true
     dependencies:
       chalk: 4.1.2
