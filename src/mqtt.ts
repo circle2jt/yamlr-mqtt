@@ -43,11 +43,11 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     const { uri, opts, ...props } = _props
     super(props as any)
     Object.assign(this, { uri, opts, _props })
-    this.$$ignoreEvalProps.push('client', 'callbacks', '_client', '_props')
+    this.ignoreEvalProps.push('callbacks', '_client', '_props', 'resolve')
   }
 
   async newOne() {
-    const newOne = await (this.parent as Group<any, any>).newElement(Mqtt, this._props) as Mqtt
+    const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy(Mqtt, this._props)
     return newOne
   }
 

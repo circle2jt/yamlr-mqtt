@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { IClientOptions, IClientPublishOptions } from 'mqtt'
-import { ElementShadow } from 'ymlr/src/components/element-shadow'
+import { ElementProxy } from 'ymlr/src/components/element-proxy'
+import { Element } from 'ymlr/src/components/element.interface'
 import { Mqtt } from './mqtt'
 import { MqttPubProps } from './mqtt-pub.props'
 
@@ -39,7 +40,10 @@ import { MqttPubProps } from './mqtt-pub.props'
           # Other elements
   ```
 */
-export class MqttPub extends ElementShadow {
+export class MqttPub implements Element {
+  ignoreEvalProps = ['mqtt']
+  proxy!: ElementProxy<this>
+
   uri?: string
   opts?: IClientOptions
   pubOpts?: IClientPublishOptions
@@ -49,22 +53,22 @@ export class MqttPub extends ElementShadow {
   private mqtt?: Mqtt
 
   constructor({ topics = [], topic, ...props }: MqttPubProps) {
-    super()
-    this.$$ignoreEvalProps.push('mqtt')
     topic && topics.push(topic)
     Object.assign(this, { topics, ...props })
   }
 
   async exec() {
     assert(this.topics.length > 0)
-    let mqtt: Mqtt
+    let mqtt: Mqtt | undefined
     if (this.uri) {
-      mqtt = this.mqtt = await this.scene.newElement(Mqtt, {
+      const mqttProxy = await this.proxy.scene.newElementProxy(Mqtt, {
         uri: this.uri,
         opts: this.opts
-      }) as Mqtt
+      })
+      mqtt = this.mqtt = mqttProxy?.element as Mqtt
     } else {
-      mqtt = await this.getParentByClassName<Mqtt>(Mqtt)
+      const mqttProxy = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+      mqtt = this.mqtt = mqttProxy?.element as Mqtt
     }
     assert(mqtt, '"uri" is required OR "ymlr-mqtt\'pub" only be used in "ymlr-mqtt"')
     await mqtt.pub(this.topics, this.data, this.pubOpts)

@@ -23,7 +23,7 @@ export class Quit extends JobStop {
   }
 
   async exec() {
-    const sub = this.getParentByClassName<MqttSub>(MqttSub)
+    const sub = this.proxy.getParentByClassName<MqttSub>(MqttSub)?.element
     await sub?.stop()
   }
 }
