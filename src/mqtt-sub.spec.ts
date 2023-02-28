@@ -14,7 +14,45 @@ test('Subscribe a topic in mqtt\'sub', async () => {
     say: 'hello world'
   }
   const mqttSub = await Testing.createElementProxy(MqttSub, {
-    uri: process.env.MQTT_URI || '',
+    uri: process.env.MQTT_URI,
+    topic: topicName,
+    runs: [
+      {
+        vars: {
+          topic: '${ $parentState.topicName }',
+          data: '${ $parentState.topicData }',
+          msg: '${ $parentState.topicMsg }'
+        }
+      },
+      {
+        'ymlr-mqtt\'stop': null
+      }
+    ]
+  })
+  const mqttPub = await Testing.createElementProxy<Mqtt>(Mqtt, { uri: process.env.MQTT_URI })
+  setTimeout(() => mqttPub.$.client.publish(topicName, JSON.stringify(data)), 1000)
+
+  await mqttSub.exec()
+  expect(Testing.vars.topic).toBe(topicName)
+  expect(Testing.vars.data).toEqual(data)
+  expect(Testing.vars.msg).toBe(JSON.stringify(data))
+
+  await mqttSub.dispose()
+  await mqttPub.dispose()
+})
+
+test('Use the mqtt to subscribe a topic in mqtt\'sub', async () => {
+  const mqtt = await Testing.createElementProxy(Mqtt, {
+    uri: process.env.MQTT_URI
+  })
+  await mqtt.exec()
+
+  const topicName = Math.random().toString()
+  const data = {
+    say: 'hello world'
+  }
+  const mqttSub = await Testing.createElementProxy(MqttSub, {
+    mqtt,
     topic: topicName,
     runs: [
       {
@@ -30,7 +68,7 @@ test('Subscribe a topic in mqtt\'sub', async () => {
     ]
   })
   const mqttPub = await Testing.createElementProxy<Mqtt>(Mqtt, { uri: process.env.MQTT_URI || '' })
-  setTimeout(() => mqttPub.element.client.publish(topicName, JSON.stringify(data)), 1000)
+  setTimeout(() => mqttPub.$.client.publish(topicName, JSON.stringify(data)), 1000)
 
   await mqttSub.exec()
   expect(Testing.vars.topic).toBe(topicName)
@@ -39,4 +77,5 @@ test('Subscribe a topic in mqtt\'sub', async () => {
 
   await mqttSub.dispose()
   await mqttPub.dispose()
+  await mqtt.dispose()
 })

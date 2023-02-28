@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { IClientOptions, IClientSubscribeOptions } from 'mqtt'
 import { Job } from 'ymlr/src/components/.job/job'
+import { ElementProxy } from 'ymlr/src/components/element-proxy'
 import { Mqtt } from './mqtt'
 import { MqttSubProps } from './mqtt-sub.props'
 
@@ -24,6 +25,7 @@ import { MqttSubProps } from './mqtt-sub.props'
           - ...
           # Other elements
   ```
+
   Used in global mqtt
   ```yaml
     - name: Global MQTT
@@ -45,6 +47,31 @@ import { MqttSubProps } from './mqtt-sub.props'
                 - ...
                 # Other elements
   ```
+
+  Or reuse by global variable
+  ```yaml
+    - name: Global MQTT
+      ymlr-mqtt:
+        uri: mqtt://user:pass@mqtt
+      vars:
+        mqtt1: ${this}
+
+    - name: "[mqtt] localhost"
+      ymlr-mqtt'sub:
+        mqtt: ${ $vars.mqtt1 }
+        topic: topic1
+        topics:                             # topics which is subscribed
+          - topic1
+          - topic2
+        runs:                               # When a message is received then it will runs them
+          - ${ $parentState }               # - Received data in a topic
+          - ${ $parentState.topicName }     # - Topic name
+          - ${ $parentState.topicData }     # - Received message which is cast to object
+          - ${ $parentState.topicMsg }      # - Received message which is text
+
+          - ...
+          # Other elements
+  ```
 */
 export class MqttSub extends Job {
   uri?: string
@@ -52,13 +79,13 @@ export class MqttSub extends Job {
   subOpts?: IClientSubscribeOptions
   topics: string[] = []
 
-  mqtt?: Mqtt
+  mqtt?: ElementProxy<Mqtt>
 
-  constructor({ uri, opts, subOpts, topics = [], topic, ...props }: MqttSubProps) {
+  constructor({ uri, opts, subOpts, topics = [], topic, mqtt, ...props }: MqttSubProps) {
     super(props as any)
     topic && topics.push(topic)
-    Object.assign(this, { uri, opts, subOpts, topics })
-    this.ignoreEvalProps.push('mqtt')
+    Object.assign(this, { uri, opts, subOpts, topics, mqtt })
+    // this.ignoreEvalProps.push('mqtt')
   }
 
   tryToParseData(msg: string) {
@@ -70,23 +97,20 @@ export class MqttSub extends Job {
   }
 
   async execJob() {
-    assert(this.uri, '"uri" is required')
-    assert(this.topics.length > 0)
-
-    if (this.uri) {
-      const mqttProxy = await this.scene.newElementProxy(Mqtt, {
-        uri: this.uri,
-        opts: this.opts
-      })
-      this.mqtt = mqttProxy?.element as Mqtt
-    } else {
-      const mqttProxy = await this.proxy.getParentByClassName<Mqtt>(Mqtt)?.element?.newOne()
-      this.mqtt = mqttProxy?.element as Mqtt
+    if (!this.mqtt) {
+      if (this.uri) {
+        this.mqtt = await this.scene.newElementProxy(Mqtt, {
+          uri: this.uri,
+          opts: this.opts
+        }) as ElementProxy<Mqtt>
+      } else {
+        this.mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+      }
     }
     assert(this.mqtt)
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    await this.mqtt.sub(this.topics, async (topic: string, buf: Buffer) => {
+    await this.mqtt.$.sub(this.topics, async (topic: string, buf: Buffer) => {
       const msg = buf.toString()
       this.logger.debug('⇠ [%s]\t%s', topic, msg)
       await this.addJobData({
@@ -98,8 +122,7 @@ export class MqttSub extends Job {
   }
 
   async stop() {
-    if (!this.mqtt) return
-    await this.mqtt.stop()
+    await this.mqtt?.$.stop()
     await super.stop()
     this.mqtt = undefined
   }

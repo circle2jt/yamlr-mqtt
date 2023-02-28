@@ -1,7 +1,10 @@
 import { IClientOptions, IClientPublishOptions } from 'mqtt'
+import { ElementProxy } from 'ymlr/src/components/element-proxy'
+import { Mqtt } from './mqtt'
 
 export interface MqttPubProps {
-  uri: string
+  mqtt?: ElementProxy<Mqtt>
+  uri?: string
   topics?: string[]
   topic?: string
   data?: any

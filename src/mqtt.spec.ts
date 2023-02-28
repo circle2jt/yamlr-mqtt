@@ -15,24 +15,13 @@ afterEach(async () => {
 test('test mqtt', async () => {
   const topicName = Math.random().toString()
   mqtt = await Testing.createElementProxy(Mqtt, {
-    uri: process.env.MQTT_URI || '',
+    uri: process.env.MQTT_URI,
     topics: [topicName],
     runs: [{
       echo: 'hello'
     }]
   })
   const [echo] = await mqtt.exec()
-  expect(mqtt.element.client).toBeDefined()
+  expect(mqtt.$.client).toBeDefined()
   expect(echo.result).toBe('hello')
 })
-
-// test('test mqtt sub', async () => {
-//   const topicName = Math.random().toString()
-//   mqtt = await Testing.createElementProxy(Mqtt, {
-//     uri: process.env.MQTT_URI || '',
-//     topics: topicName
-//   })
-//   const [echo] = await mqtt.exec()
-//   expect(mqtt.client).toBeDefined()
-//   expect(echo.result).toBe('hello')
-// })

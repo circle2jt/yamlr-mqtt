@@ -79,6 +79,25 @@ Reuse mqtt connection to publish multiple times
               name: thanh
         - ...
         # Other elements
+```
+
+Or reuse by global variable
+Reuse mqtt connection to publish multiple times
+```yaml
+  - name: "[mqtt] localhost"
+    ymlr-mqtt:
+      uri: mqtt://user:pass@mqtt
+    vars:
+      mqtt1: ${this}
+
+  - ymlr-mqtt'pub:
+      mqtt: ${ $vars.mqtt1 }
+      topics:
+        - topic1
+      pubOpts:
+        qos?: 0 | 1 | 2
+      data:
+        name: thanh
 ```  
 
 
@@ -121,6 +140,7 @@ Example:
         - ...
         # Other elements
 ```
+
 Used in global mqtt
 ```yaml
   - name: Global MQTT
@@ -141,6 +161,31 @@ Used in global mqtt
 
               - ...
               # Other elements
+```
+
+Or reuse by global variable
+```yaml
+  - name: Global MQTT
+    ymlr-mqtt:
+      uri: mqtt://user:pass@mqtt
+    vars:
+      mqtt1: ${this}
+
+  - name: "[mqtt] localhost"
+    ymlr-mqtt'sub:
+      mqtt: ${ $vars.mqtt1 }
+      topic: topic1
+      topics:                             # topics which is subscribed
+        - topic1
+        - topic2
+      runs:                               # When a message is received then it will runs them
+        - ${ $parentState }               # - Received data in a topic
+        - ${ $parentState.topicName }     # - Topic name
+        - ${ $parentState.topicData }     # - Received message which is cast to object
+        - ${ $parentState.topicMsg }      # - Received message which is text
+
+        - ...
+        # Other elements
 ```  
 
 

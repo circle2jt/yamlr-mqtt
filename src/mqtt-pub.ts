@@ -39,9 +39,28 @@ import { MqttPubProps } from './mqtt-pub.props'
           - ...
           # Other elements
   ```
+
+  Or reuse by global variable
+  Reuse mqtt connection to publish multiple times
+  ```yaml
+    - name: "[mqtt] localhost"
+      ymlr-mqtt:
+        uri: mqtt://user:pass@mqtt
+      vars:
+        mqtt1: ${this}
+
+    - ymlr-mqtt'pub:
+        mqtt: ${ $vars.mqtt1 }
+        topics:
+          - topic1
+        pubOpts:
+          qos?: 0 | 1 | 2
+        data:
+          name: thanh
+  ```
 */
 export class MqttPub implements Element {
-  ignoreEvalProps = ['mqtt']
+  // ignoreEvalProps = ['mqtt']
   proxy!: ElementProxy<this>
 
   uri?: string
@@ -50,35 +69,36 @@ export class MqttPub implements Element {
   data?: any
   topics: string[] = []
 
-  private mqtt?: Mqtt
+  mqtt?: ElementProxy<Mqtt>
 
-  constructor({ topics = [], topic, ...props }: MqttPubProps) {
+  constructor({ topics = [], topic, mqtt, ...props }: MqttPubProps) {
     topic && topics.push(topic)
-    Object.assign(this, { topics, ...props })
+    Object.assign(this, { topics, mqtt, ...props })
   }
 
   async exec() {
     assert(this.topics.length > 0)
-    let mqtt: Mqtt | undefined
-    if (this.uri) {
-      const mqttProxy = await this.proxy.scene.newElementProxy(Mqtt, {
-        uri: this.uri,
-        opts: this.opts
-      })
-      mqtt = this.mqtt = mqttProxy?.element as Mqtt
-    } else {
-      const mqttProxy = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
-      mqtt = this.mqtt = mqttProxy?.element as Mqtt
+    let mqtt = this.mqtt
+    if (!mqtt) {
+      if (this.uri) {
+        mqtt = this.mqtt = await this.proxy.scene.newElementProxy(Mqtt, {
+          uri: this.uri,
+          opts: this.opts
+        }) as ElementProxy<Mqtt>
+      } else {
+        mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+      }
     }
     assert(mqtt, '"uri" is required OR "ymlr-mqtt\'pub" only be used in "ymlr-mqtt"')
-    await mqtt.pub(this.topics, this.data, this.pubOpts)
+    await mqtt.$.pub(this.topics, this.data, this.pubOpts)
     return this.data
   }
 
   async stop() {
-    if (!this.mqtt) return
-    await this.mqtt.stop()
-    this.mqtt = undefined
+    if (this.uri) {
+      await this.mqtt?.$.stop()
+      this.mqtt = undefined
+    }
   }
 
   async dispose() {
