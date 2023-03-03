@@ -36,8 +36,9 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
 
   uri?: string
   opts?: IClientOptions
-  callbacks?: OnMessageCallback[]
+  callbacks?: Record<string, OnMessageCallback[]>
   private resolve?: Function
+  private promSubscribe?: Promise<any>
 
   constructor(private readonly _props: MqttProps) {
     const { uri, opts, ...props } = _props
@@ -76,23 +77,29 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     })
     if (cb) {
       if (!this.callbacks) {
-        this.callbacks = []
+        this.callbacks = {}
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.client.on('message', this.onMessage.bind(this))
       }
-      this.callbacks.push(cb)
+      for (const topic of topics) {
+        if (!this.callbacks[topic]) this.callbacks[topic] = []
+        this.callbacks[topic].push(cb)
+      }
     }
 
-    await new Promise(resolve => {
-      this.resolve = resolve
-    })
+    if (!this.promSubscribe) {
+      this.promSubscribe = new Promise(resolve => {
+        this.resolve = resolve
+      })
+    }
+    await this.promSubscribe
   }
 
   async onMessage(topic: string, payload: Buffer, packet: IPublishPacket) {
-    const proms = this.callbacks?.map(cb => cb(topic, payload, packet))
-    if (proms?.length) {
-      await Promise.all(proms)
-    }
+    if (!this.callbacks) return
+    const callbacks = this.callbacks[topic]
+    if (!callbacks?.length) return
+    await Promise.all(callbacks.map(cb => cb(topic, payload, packet)))
   }
 
   async unsub(topics?: string[], opts?: IClientSubscribeOptions) {
@@ -100,6 +107,7 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     await new Promise((resolve, reject) => {
       this.logger.debug(`Subscribed "${topics}" in "${this.uri}"`)
       this.client.unsubscribe(topics, opts || {}, (err) => !err ? resolve(undefined) : reject(err))
+      topics?.forEach(topic => delete this.callbacks?.[topic])
     })
   }
 
