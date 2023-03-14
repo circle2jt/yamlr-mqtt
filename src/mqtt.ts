@@ -53,11 +53,13 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
   }
 
   async pub(topics: string[], data: any, opts?: IClientPublishOptions) {
+    if (!topics?.length) return
     let msg = data ?? ''
     if (typeof msg === 'object') {
       msg = JSON.stringify(msg)
     }
-    const proms = topics?.map(async topic => {
+    this.logger.debug('⇢ [%s]\t%j', topics.join('|'), msg.toString())
+    const proms = topics.map(async topic => {
       await new Promise((resolve, reject) => this.client.publish(topic, msg.toString(), opts || {}, (err: any) => err ? reject(err) : resolve(undefined)))
     })
     if (proms?.length) {
@@ -99,6 +101,7 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     if (!this.callbacks) return
     const callbacks = this.callbacks[topic]
     if (!callbacks?.length) return
+    this.logger.debug('[%s]\t%s', topic, payload.toString())
     await Promise.all(callbacks.map(cb => cb(topic, payload, packet)))
   }
 

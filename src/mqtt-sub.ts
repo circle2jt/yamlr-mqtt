@@ -112,7 +112,6 @@ export class MqttSub extends Job {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     await this.mqtt.$.sub(this.topics, async (topic: string, buf: Buffer) => {
       const msg = buf.toString()
-      this.logger.debug('⇠ [%s]\t%s', topic, msg)
       await this.addJobData({
         topicName: topic,
         topicMsg: msg,
