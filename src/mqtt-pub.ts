@@ -84,7 +84,7 @@ export class MqttPub implements Element {
         mqtt = this.mqtt = await this.proxy.scene.newElementProxy(Mqtt, {
           uri: this.uri,
           opts: this.opts
-        }) as ElementProxy<Mqtt>
+        })
       } else {
         mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }

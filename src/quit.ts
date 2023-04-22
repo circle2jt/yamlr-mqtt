@@ -8,7 +8,7 @@ import { QuitProps } from './quit.props'
   @example
   ```yaml
     - ymlr-mqtt'sub:
-        uri: redis://redis:6379
+        uri: mqtt://mqtt:1883
         topics:                     # Topics which is subscribed
           - topic1
         runs:                       # When a message is received then it will runs them

@@ -36,7 +36,12 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
 
   uri?: string
   opts?: IClientOptions
-  callbacks?: Record<string, OnMessageCallback[]>
+
+  private callbacks?: {
+    id: Map<string, OnMessageCallback>
+    text?: Map<string, Set<OnMessageCallback>>
+  }
+
   private resolve?: Function
   private promSubscribe?: Promise<any>
 
@@ -48,11 +53,17 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
   }
 
   async newOne() {
-    const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy(Mqtt, this._props)
+    const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy<Mqtt>(Mqtt, this._props)
     return newOne
   }
 
-  async pub(topics: string[], data: any, opts?: IClientPublishOptions) {
+  async waitToDone() {
+    if (!this.promSubscribe) return
+    return await this.promSubscribe
+  }
+
+  async pub(topics: string[] | string, data?: any, opts?: IClientPublishOptions) {
+    if (!Array.isArray(topics)) topics = [topics]
     if (!topics?.length) return
     let msg = data ?? ''
     if (typeof msg === 'object') {
@@ -67,51 +78,100 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     }
   }
 
-  async sub(topics: string[], cb: OnMessageCallback | undefined, opts?: IClientSubscribeOptions) {
-    if (!topics?.length) return
-    this.logger.debug(`Subscribed "${topics}" in "${this.uri}"`)
-    await new Promise((resolve, reject) => {
-      if (!opts) {
-        this.client.subscribe(topics, (err) => !err ? resolve(undefined) : reject(err))
-      } else {
-        this.client.subscribe(topics, opts, (err) => !err ? resolve(undefined) : reject(err))
-      }
-    })
-    if (cb) {
-      if (!this.callbacks) {
-        this.callbacks = {}
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.client.on('message', this.onMessage.bind(this))
-      }
-      for (const topic of topics) {
-        if (!this.callbacks[topic]) this.callbacks[topic] = []
-        this.callbacks[topic].push(cb)
-      }
+  async sub(topics: string[] | string, cb: OnMessageCallback | undefined, opts?: IClientSubscribeOptions) {
+    let callbackType = 1
+    const callbackIDs = [] as string[]
+    if (!Array.isArray(topics)) {
+      topics = [topics]
+      callbackType = 0
     }
+    if (topics?.length) {
+      this.logger.debug(`Subscribed "${topics}" in "${this.uri}"`)
+      if (topics.length) {
+        await new Promise((resolve, reject) => {
+          if (!opts) {
+            this.client.subscribe(topics, (err) => !err ? resolve(undefined) : reject(err))
+          } else {
+            this.client.subscribe(topics, opts, (err) => !err ? resolve(undefined) : reject(err))
+          }
+        })
+      }
+      if (cb) {
+        if (!this.callbacks) {
+          this.callbacks = {
+            id: new Map(),
+            text: undefined
+          }
+        }
+        if (!this.callbacks?.text) {
+          this.callbacks.text = new Map()
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          this.client.on('message', this.onMessage.bind(this))
+        }
+        const cbChannels = this.callbacks.text as Map<string, Set<any>>
+        const id: Map<string, any> = this.callbacks.id
+        const rd = Math.random().toString()
+        topics.forEach((topic, i) => {
+          if (!cbChannels.has(topic)) cbChannels.set(topic, new Set())
 
-    if (!this.promSubscribe) {
-      this.promSubscribe = new Promise(resolve => {
-        this.resolve = resolve
-      })
+          const callbackID = `${topic}:${i}:${rd}`
+          id.set(callbackID, cb)
+          cbChannels.get(topic)?.add(id.get(callbackID))
+          callbackIDs.push(callbackID)
+        })
+
+        if (!this.promSubscribe) {
+          this.promSubscribe = new Promise(resolve => {
+            this.resolve = resolve
+          })
+        }
+      }
     }
-    await this.promSubscribe
+    return callbackType === 1 ? callbackIDs : callbackIDs[0]
   }
 
   async onMessage(topic: string, payload: Buffer, packet: IPublishPacket) {
     if (!this.callbacks) return
-    const callbacks = this.callbacks[topic]
-    if (!callbacks?.length) return
-    this.logger.debug('[%s]\t%s', topic, payload.toString())
-    await Promise.all(callbacks.map(cb => cb(topic, payload, packet)))
+    const callbacks = this.callbacks.text?.get(topic) as Set<OnMessageCallback>
+    if (!callbacks?.size) return
+    this.logger.debug('⇠ [%s]\t%s', topic, payload)
+    await Promise.all([...callbacks].map(cb => cb(topic, payload, packet)))
   }
 
-  async unsub(topics?: string[], opts?: IClientSubscribeOptions) {
-    if (!topics?.length) return
+  async unsub(topics: string[], opts?: IClientSubscribeOptions, isRemoveCallback = true) {
+    if (typeof topics === 'string') {
+      topics = [topics]
+    }
+    if (!topics.length) return
+    this.logger.debug(`Subscribed "${topics}" in "${this.uri}"`)
     await new Promise((resolve, reject) => {
-      this.logger.debug(`Subscribed "${topics}" in "${this.uri}"`)
-      this.client.unsubscribe(topics, opts || {}, (err) => !err ? resolve(undefined) : reject(err))
-      topics?.forEach(topic => delete this.callbacks?.[topic])
+      this.client.unsubscribe(topics, opts, (err) => !err ? resolve(undefined) : reject(err))
     })
+    if (isRemoveCallback) {
+      topics.forEach(topic => {
+        Object.keys(this.callbacks?.id || {})
+          .filter(uuid => uuid.includes(`:${topic}:`))
+          .forEach(uuid => this.callbacks?.id.delete(uuid))
+        this.callbacks?.text?.delete(topic)
+      })
+    }
+  }
+
+  async removeCb(uuids: string | string[]) {
+    if (!Array.isArray(uuids)) {
+      uuids = [uuids]
+    }
+    [...(this.callbacks?.id.keys() || [])]
+      .filter((uuid: string) => uuids.includes(uuid))
+      .forEach((uuid: string) => {
+        const [channel] = uuid.split(':')
+        const cb = this.callbacks?.id.get(uuid)
+        if (cb) {
+          const ch = this.callbacks?.text?.get(channel)
+          ch?.delete(cb)
+        }
+        this.callbacks?.id.delete(uuid)
+      })
   }
 
   async exec() {

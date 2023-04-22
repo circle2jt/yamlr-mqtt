@@ -102,7 +102,7 @@ export class MqttSub extends Job {
         this.mqtt = await this.scene.newElementProxy(Mqtt, {
           uri: this.uri,
           opts: this.opts
-        }) as ElementProxy<Mqtt>
+        })
       } else {
         this.mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }
@@ -118,6 +118,7 @@ export class MqttSub extends Job {
         topicData: this.tryToParseData(msg)
       })
     }, this.subOpts)
+    await this.mqtt.$.waitToDone()
   }
 
   async stop() {

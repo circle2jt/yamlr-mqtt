@@ -15,15 +15,10 @@ test('publish a message', async () => {
   const mqtt = await Testing.createElementProxy<Mqtt>(Mqtt, {
     uri: process.env.MQTT_URI
   })
-  // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
-  const t = new Promise(async (resolve) => {
-    await mqtt.$.sub([topicName], (topic: string, buf: Buffer) => {
-      Testing.vars.topic = topic
-      Testing.vars.data = buf.toString()
-      resolve(undefined)
-    })
+  await mqtt.$.sub([topicName], (topic: string, buf: Buffer) => {
+    Testing.vars.topic = topic
+    Testing.vars.data = buf.toString()
   })
-  await sleep(1000)
   const pub = await Testing.createElementProxy(MqttPub, {
     uri: process.env.MQTT_URI,
     topic: topicName,
@@ -31,8 +26,8 @@ test('publish a message', async () => {
   })
   await pub.exec()
   await pub.dispose()
-  await t
   await mqtt.dispose()
+  await sleep(500)
   expect(Testing.vars.topic).toBe(topicName)
   expect(Testing.vars.data).toBe('hello world')
 })
@@ -56,18 +51,13 @@ test('publish a message - used in ymlr-mqtt', async () => {
   const sub = await Testing.createElementProxy<Mqtt>(Mqtt, {
     uri: process.env.MQTT_URI
   })
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-  const t = new Promise(async (resolve) => {
-    await sub.$.sub([topicName], (topic: string, buf: Buffer) => {
-      Testing.vars.topic = topic
-      Testing.vars.data = buf.toString()
-      resolve(undefined)
-    })
+  await sub.$.sub([topicName], (topic: string, buf: Buffer) => {
+    Testing.vars.topic = topic
+    Testing.vars.data = buf.toString()
   })
-  await sleep(1000)
   await mqtt.exec()
-  await t
   await sub.dispose()
+  await sleep(500)
   expect(Testing.vars.topic).toBe(topicName)
   expect(Testing.vars.data).toBe(JSON.stringify(data))
   await mqtt.dispose()
@@ -88,19 +78,14 @@ test('publish a message - used the global mqtt', async () => {
     topics: [topicName],
     data
   })
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-  const t = new Promise(async (resolve) => {
-    await mqtt.$.sub([topicName], (topic: string, buf: Buffer) => {
-      Testing.vars.topic = topic
-      Testing.vars.data = buf.toString()
-      resolve(undefined)
-    })
+  await mqtt.$.sub([topicName], (topic: string, buf: Buffer) => {
+    Testing.vars.topic = topic
+    Testing.vars.data = buf.toString()
   })
-  await sleep(1000)
   await mqttPub.exec()
-  await t
   await mqttPub.dispose()
+  await mqtt.dispose()
+  await sleep(500)
   expect(Testing.vars.topic).toBe(topicName)
   expect(Testing.vars.data).toBe(JSON.stringify(data))
-  await mqtt.dispose()
 })
