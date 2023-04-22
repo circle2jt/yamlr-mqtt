@@ -16,6 +16,7 @@ services:
       - MQTT_URI=mqtt://mqtt:1883
     user: node
     volumes:
+      - ~/.ssh:/home/node/.ssh
       - ../:/workspaces/app
       - pnpm_cached:/workspaces/app/.pnpm-store
     command: /bin/sh -c "while sleep infinity; do :; done"
