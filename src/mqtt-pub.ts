@@ -76,7 +76,7 @@ export class MqttPub implements Element {
     Object.assign(this, { topics, mqtt, ...props })
   }
 
-  async exec() {
+  async exec(parentState: any) {
     assert(this.topics.length > 0)
     let mqtt = this.mqtt
     if (!mqtt) {
@@ -85,6 +85,7 @@ export class MqttPub implements Element {
           uri: this.uri,
           opts: this.opts
         })
+        await this.mqtt.exec(parentState)
       } else {
         mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }

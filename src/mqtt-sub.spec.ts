@@ -30,6 +30,7 @@ test('Subscribe a topic in mqtt\'sub', async () => {
     ]
   })
   const mqttPub = await Testing.createElementProxy<Mqtt>(Mqtt, { uri: process.env.MQTT_URI })
+  await mqttPub.exec()
   setTimeout(() => mqttPub.$.client.publish(topicName, JSON.stringify(data)), 1000)
 
   await mqttSub.exec()
@@ -38,11 +39,11 @@ test('Subscribe a topic in mqtt\'sub', async () => {
   expect(Testing.vars.msg).toBe(JSON.stringify(data))
 
   await mqttSub.dispose()
-  await mqttPub.dispose()
+  await mqttPub.$.stop()
 })
 
 test('Use the mqtt to subscribe a topic in mqtt\'sub', async () => {
-  const mqtt = await Testing.createElementProxy(Mqtt, {
+  const mqtt = await Testing.createElementProxy<Mqtt>(Mqtt, {
     uri: process.env.MQTT_URI
   })
   await mqtt.exec()
@@ -68,6 +69,7 @@ test('Use the mqtt to subscribe a topic in mqtt\'sub', async () => {
     ]
   })
   const mqttPub = await Testing.createElementProxy<Mqtt>(Mqtt, { uri: process.env.MQTT_URI || '' })
+  await mqttPub.exec()
   setTimeout(() => mqttPub.$.client.publish(topicName, JSON.stringify(data)), 1000)
 
   await mqttSub.exec()
@@ -76,6 +78,6 @@ test('Use the mqtt to subscribe a topic in mqtt\'sub', async () => {
   expect(Testing.vars.msg).toBe(JSON.stringify(data))
 
   await mqttSub.dispose()
-  await mqttPub.dispose()
-  await mqtt.dispose()
+  await mqttPub.$.stop()
+  await mqtt.$.stop()
 })
