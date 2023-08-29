@@ -10,7 +10,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await mqtt.dispose()
+  await mqtt.$.stop()
 })
 
 test('test mqtt', async () => {
@@ -129,6 +129,6 @@ test('sub callback', async () => {
     expect(callbacks.text.get('c1').size).toBe(0)
     expect(callbacks.text.get('c2').size).toBe(0)
   } finally {
-    await subMqtt1.dispose()
+    await subMqtt1.$.stop()
   }
 })

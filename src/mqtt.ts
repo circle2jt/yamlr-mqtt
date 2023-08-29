@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { connect, IClientOptions, IClientPublishOptions, IClientSubscribeOptions, IPublishPacket, MqttClient, OnMessageCallback } from 'mqtt'
+import { IClientOptions, IClientPublishOptions, IClientSubscribeOptions, IPublishPacket, MqttClient, OnMessageCallback, connect } from 'mqtt'
 import { Group } from 'ymlr/src/components/group/group'
 import { GroupItemProps } from 'ymlr/src/components/group/group.props'
 import { MqttProps } from './mqtt.props'
@@ -29,10 +29,7 @@ import { MqttProps } from './mqtt.props'
   ```
 */
 export class Mqtt extends Group<MqttProps, GroupItemProps> {
-  private _client?: MqttClient
-  get client() {
-    return this._client || (this._client = connect(this.uri || '', this.opts))
-  }
+  client!: MqttClient
 
   uri?: string
   opts?: IClientOptions
@@ -49,11 +46,12 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
     const { uri, opts, ...props } = _props
     super(props as any)
     Object.assign(this, { uri, opts, _props })
-    this.ignoreEvalProps.push('callbacks', '_client', '_props', 'resolve')
+    this.ignoreEvalProps.push('callbacks', 'client', '_props', 'resolve')
   }
 
   async newOne() {
     const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy<Mqtt>(Mqtt, this._props)
+    await newOne.exec()
     return newOne
   }
 
@@ -176,6 +174,7 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
 
   async exec() {
     assert(this.uri, '"uri" is required')
+    this.client = connect(this.uri || '', this.opts)
     await new Promise((resolve, reject) => {
       this.client.on('connect', resolve).on('error', reject)
     })
@@ -184,13 +183,13 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
   }
 
   async stop() {
-    if (!this._client) return
     await new Promise((resolve, reject) => this.client.end(false, {}, (err) => !err ? resolve(undefined) : reject(err)))
     if (this.resolve) this.resolve(undefined)
-    this._client = undefined
   }
 
   async dispose() {
-    await this.stop()
+    if (this.runs?.length) {
+      await this.stop()
+    }
   }
 }

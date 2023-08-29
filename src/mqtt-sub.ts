@@ -103,6 +103,7 @@ export class MqttSub extends Job {
           uri: this.uri,
           opts: this.opts
         })
+        await this.mqtt.exec()
       } else {
         this.mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }
