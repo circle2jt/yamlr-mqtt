@@ -1,4 +1,4 @@
-import { ElementProxy } from 'ymlr/src/components/element-proxy'
+import { type ElementProxy } from 'ymlr/src/components/element-proxy'
 import { sleep } from 'ymlr/src/libs/time'
 import { Testing } from 'ymlr/src/testing'
 import { Mqtt } from './mqtt'
@@ -97,7 +97,6 @@ test('sub callback', async () => {
     expect(c1).toBe(1)
     expect(c2).toBe(1)
 
-    // @ts-expect-error
     const callbacks = subMqtt1.$.callbacks as any
 
     expect(callbacks.id.size).toBe(2)

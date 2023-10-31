@@ -1,4 +1,4 @@
-import { IClientOptions } from 'mqtt'
+import { type IClientOptions } from 'mqtt'
 
 export interface MqttProps {
   uri: string

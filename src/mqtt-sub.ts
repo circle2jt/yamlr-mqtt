@@ -1,11 +1,11 @@
 import assert from 'assert'
-import { IClientOptions, IClientSubscribeOptions } from 'mqtt'
-import { ElementProxy } from 'ymlr/src/components/element-proxy'
-import { Element } from 'ymlr/src/components/element.interface'
-import Group from 'ymlr/src/components/group'
-import { GroupItemProps, GroupProps } from 'ymlr/src/components/group/group.props'
+import { type IClientOptions, type IClientSubscribeOptions } from 'mqtt'
+import { type ElementProxy } from 'ymlr/src/components/element-proxy'
+import { type Element } from 'ymlr/src/components/element.interface'
+import type Group from 'ymlr/src/components/group'
+import { type GroupItemProps, type GroupProps } from 'ymlr/src/components/group/group.props'
 import { Mqtt } from './mqtt'
-import { MqttSubProps } from './mqtt-sub.props'
+import { type MqttSubProps } from './mqtt-sub.props'
 
 /** |**  ymlr-mqtt'sub
   Subscribe topics in mqtt
@@ -112,7 +112,7 @@ export class MqttSub implements Element {
         mqtt.logger = this.proxy.logger
         await mqtt.exec()
       } else {
-        mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+        mqtt = this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }
     }
     assert(mqtt, '"uri" is required OR "ymlr-redis\'pub" only be used in "ymlr-redis"')

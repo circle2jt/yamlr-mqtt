@@ -1,6 +1,6 @@
-import { IClientOptions, IClientSubscribeOptions } from 'mqtt'
-import { ElementProxy } from 'ymlr/src/components/element-proxy'
-import { Mqtt } from './mqtt'
+import { type IClientOptions, type IClientSubscribeOptions } from 'mqtt'
+import { type ElementProxy } from 'ymlr/src/components/element-proxy'
+import { type Mqtt } from './mqtt'
 
 export interface MqttSubProps {
   mqtt?: ElementProxy<Mqtt>

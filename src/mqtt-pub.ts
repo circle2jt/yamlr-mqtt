@@ -1,9 +1,9 @@
 import assert from 'assert'
-import { IClientOptions, IClientPublishOptions } from 'mqtt'
-import { ElementProxy } from 'ymlr/src/components/element-proxy'
-import { Element } from 'ymlr/src/components/element.interface'
+import { type IClientOptions, type IClientPublishOptions } from 'mqtt'
+import { type ElementProxy } from 'ymlr/src/components/element-proxy'
+import { type Element } from 'ymlr/src/components/element.interface'
 import { Mqtt } from './mqtt'
-import { MqttPubProps } from './mqtt-pub.props'
+import { type MqttPubProps } from './mqtt-pub.props'
 
 /** |**  ymlr-mqtt'pub
   Publish a message to topics in mqtt
@@ -88,7 +88,7 @@ export class MqttPub implements Element {
         mqtt.logger = this.proxy.logger
         await this.mqtt.exec(parentState)
       } else {
-        mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+        mqtt = this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }
     }
     assert(mqtt, '"uri" is required OR "ymlr-mqtt\'pub" only be used in "ymlr-mqtt"')
