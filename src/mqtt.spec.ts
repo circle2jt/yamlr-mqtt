@@ -13,7 +13,7 @@ afterEach(async () => {
   await mqtt.$.stop()
 })
 
-test('test mqtt', async () => {
+test.only('test mqtt', async () => {
   const topicName = Math.random().toString()
   mqtt = await Testing.createElementProxy(Mqtt, {
     uri: process.env.MQTT_URI,

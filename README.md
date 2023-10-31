@@ -10,7 +10,6 @@ ymlr-mqtt for ymlr plugin
 |---|---|
 | [ymlr-mqtt](#ymlr-mqtt) | Declare a mqtt connector |
 | [ymlr-mqtt'pub](#ymlr-mqtt'pub) | Publish a message to topics in mqtt |
-| [ymlr-mqtt'quit](#ymlr-mqtt'quit) | Stop subscribed. Only used in "ymlr-mqtt'sub" |
 | [ymlr-mqtt'sub](#ymlr-mqtt'sub) | Subscribe topics in mqtt |
 
 
@@ -101,22 +100,6 @@ Reuse mqtt connection to publish multiple times
 ```  
 
 
-## <a id="ymlr-mqtt'quit"></a>ymlr-mqtt'quit  
-  
-Stop subscribed. Only used in "ymlr-mqtt'sub"  
-
-Example:  
-
-```yaml
-  - ymlr-mqtt'sub:
-      uri: mqtt://mqtt:1883
-      topics:                     # Topics which is subscribed
-        - topic1
-      runs:                       # When a message is received then it will runs them
-        - ymlr-mqtt'stop:        # Stop subscribed
-```  
-
-
 ## <a id="ymlr-mqtt'sub"></a>ymlr-mqtt'sub  
   
 Subscribe topics in mqtt  
@@ -186,6 +169,8 @@ Or reuse by global variable
 
         - ...
         # Other elements
+
+        - stop:                           # - Stop subscribing
 ```  
 
 

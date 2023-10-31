@@ -25,7 +25,7 @@ test('Subscribe a topic in mqtt\'sub', async () => {
         }
       },
       {
-        'ymlr-mqtt\'stop': null
+        stop: null
       }
     ]
   })
@@ -64,7 +64,7 @@ test('Use the mqtt to subscribe a topic in mqtt\'sub', async () => {
         }
       },
       {
-        'ymlr-mqtt\'stop': null
+        stop: null
       }
     ]
   })

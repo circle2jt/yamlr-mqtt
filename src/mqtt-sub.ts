@@ -1,7 +1,9 @@
 import assert from 'assert'
 import { IClientOptions, IClientSubscribeOptions } from 'mqtt'
-import { Job } from 'ymlr/src/components/.job/job'
 import { ElementProxy } from 'ymlr/src/components/element-proxy'
+import { Element } from 'ymlr/src/components/element.interface'
+import Group from 'ymlr/src/components/group'
+import { GroupItemProps, GroupProps } from 'ymlr/src/components/group/group.props'
 import { Mqtt } from './mqtt'
 import { MqttSubProps } from './mqtt-sub.props'
 
@@ -71,9 +73,14 @@ import { MqttSubProps } from './mqtt-sub.props'
 
           - ...
           # Other elements
+
+          - stop:                           # - Stop subscribing
   ```
 */
-export class MqttSub extends Job {
+export class MqttSub implements Element {
+  readonly proxy!: ElementProxy<this>
+  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+
   uri?: string
   opts?: IClientOptions
   subOpts?: IClientSubscribeOptions
@@ -81,11 +88,9 @@ export class MqttSub extends Job {
 
   mqtt?: ElementProxy<Mqtt>
 
-  constructor({ uri, opts, subOpts, topics = [], topic, mqtt, ...props }: MqttSubProps) {
-    super(props as any)
+  constructor({ uri, opts, subOpts, topics = [], topic, mqtt }: MqttSubProps) {
     topic && topics.push(topic)
     Object.assign(this, { uri, opts, subOpts, topics, mqtt })
-    // this.ignoreEvalProps.push('mqtt')
   }
 
   tryToParseData(msg: string) {
@@ -96,35 +101,42 @@ export class MqttSub extends Job {
     }
   }
 
-  async execJob() {
-    if (!this.mqtt) {
+  async exec(parentState?: any) {
+    let mqtt = this.mqtt
+    if (!mqtt) {
       if (this.uri) {
-        this.mqtt = await this.scene.newElementProxy(Mqtt, {
+        this.mqtt = mqtt = await this.proxy.scene.newElementProxy(Mqtt, {
           uri: this.uri,
           opts: this.opts
         })
-        await this.mqtt.exec()
+        mqtt.logger = this.proxy.logger
+        await mqtt.exec()
       } else {
-        this.mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
+        mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)
       }
     }
-    assert(this.mqtt)
+    assert(mqtt, '"uri" is required OR "ymlr-redis\'pub" only be used in "ymlr-redis"')
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    await this.mqtt.$.sub(this.topics, async (topic: string, buf: Buffer) => {
+    await mqtt.$.sub(this.topics, async (topic: string, buf: Buffer) => {
       const msg = buf.toString()
-      await this.addJobData({
+      await this.innerRunsProxy.exec({
+        ...parentState,
         topicName: topic,
         topicMsg: msg,
         topicData: this.tryToParseData(msg)
       })
     }, this.subOpts)
-    await this.mqtt.$.waitToDone()
+    await mqtt.$.waitToDone()
   }
 
   async stop() {
+    await this.mqtt?.$.unsub(this.topics, undefined, true)
     await this.mqtt?.$.stop()
-    await super.stop()
     this.mqtt = undefined
+  }
+
+  async dispose() {
+    await this.stop()
   }
 }

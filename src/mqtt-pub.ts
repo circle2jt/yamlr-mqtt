@@ -85,6 +85,7 @@ export class MqttPub implements Element {
           uri: this.uri,
           opts: this.opts
         })
+        mqtt.logger = this.proxy.logger
         await this.mqtt.exec(parentState)
       } else {
         mqtt = await this.proxy.getParentByClassName<Mqtt>(Mqtt)

@@ -1,7 +1,9 @@
 import assert from 'assert'
 import { IClientOptions, IClientPublishOptions, IClientSubscribeOptions, IPublishPacket, MqttClient, OnMessageCallback, connect } from 'mqtt'
+import { ElementProxy } from 'ymlr/src/components/element-proxy'
+import { Element } from 'ymlr/src/components/element.interface'
 import { Group } from 'ymlr/src/components/group/group'
-import { GroupItemProps } from 'ymlr/src/components/group/group.props'
+import { GroupItemProps, GroupProps } from 'ymlr/src/components/group/group.props'
 import { MqttProps } from './mqtt.props'
 
 /** |**  ymlr-mqtt
@@ -28,7 +30,11 @@ import { MqttProps } from './mqtt.props'
                 msg: Hello world
   ```
 */
-export class Mqtt extends Group<MqttProps, GroupItemProps> {
+export class Mqtt implements Element {
+  readonly proxy!: ElementProxy<this>
+  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  readonly ignoreEvalProps = ['callbacks', 'resolve', 'promSubscribe']
+
   client!: MqttClient
 
   uri?: string
@@ -42,15 +48,16 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
   private resolve?: Function
   private promSubscribe?: Promise<any>
 
-  constructor(private readonly _props: MqttProps) {
-    const { uri, opts, ...props } = _props
-    super(props as any)
-    Object.assign(this, { uri, opts, _props })
-    this.ignoreEvalProps.push('callbacks', 'client', '_props', 'resolve')
+  get logger() {
+    return this.proxy.logger
+  }
+
+  constructor(private readonly props: MqttProps) {
+    Object.assign(this, props)
   }
 
   async newOne() {
-    const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy<Mqtt>(Mqtt, this._props)
+    const newOne = await (this.proxy.parent as Group<any, any>).newElementProxy<Mqtt>(Mqtt, this.props)
     await newOne.exec()
     return newOne
   }
@@ -172,13 +179,13 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
       })
   }
 
-  async exec() {
+  async exec(parentState?: any) {
     assert(this.uri, '"uri" is required')
     this.client = connect(this.uri || '', this.opts)
     await new Promise((resolve, reject) => {
       this.client.on('connect', resolve).on('error', reject)
     })
-    const rs = await super.exec()
+    const rs = await this.innerRunsProxy.exec(parentState)
     return rs
   }
 
@@ -188,8 +195,6 @@ export class Mqtt extends Group<MqttProps, GroupItemProps> {
   }
 
   async dispose() {
-    if (this.runs?.length) {
-      await this.stop()
-    }
+    await this.stop()
   }
 }
